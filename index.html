@@ -44,14 +44,6 @@
       <button class="hamburger" id="hamburger" aria-label="Menú">
         <span></span><span></span><span></span>
       </button>
-
-      <div id="auth-area" class="auth-area">
-        <button id="btn-login" class="btn-auth">👤 Entrar</button>
-        <div id="user-profile" class="user-profile" style="display:none">
-          <img id="user-photo" src="" alt="User">
-          <button id="btn-logout" class="btn-logout" title="Cerrar sesión">✖</button>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -63,10 +55,6 @@
     <button class="drawer-btn" data-page="ranking">📊 Ranking FIFA</button>
     <button class="drawer-btn" data-page="simulador">🎮 Simulador</button>
     <button class="drawer-btn" data-page="estadios">🏟️ Estadios</button>
-    <hr style="border: none; border-top: 1px solid var(--card-border); margin: 10px 0;">
-    <div id="auth-drawer" class="auth-drawer">
-      <button id="btn-login-drawer" class="drawer-btn" style="color: var(--gold); border-color: var(--gold); font-weight: 700;">👤 Iniciar Sesión</button>
-    </div>
   </div>
   <div class="drawer-overlay" id="drawer-overlay"></div>
 
@@ -284,8 +272,8 @@
         .catch(err => console.log('SW Failed', err));
     }
   </script>
-  <script type="module" src="js/data.js?v=3.0"></script>
-  <script type="module" src="js/db.js?v=3.0"></script>
-  <script type="module" src="js/app.js?v=3.0"></script>
+  <script src="js/data.js?v=4.0"></script>
+  <script src="js/db.js?v=4.0"></script>
+  <script src="js/app.js?v=4.0"></script>
 </body>
 </html>

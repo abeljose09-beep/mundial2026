@@ -1,7 +1,10 @@
 (async () => {
-  // ── 0. GLOBAL STATE ──
-  let allMatches = [];
-  let allBracket = [];
+  // ── INIT DB ──
+  await DB.init();
+
+  // ── STATE ──
+  let allMatches = await DB.getAllMatches();
+  let allBracket = await DB.getAllBracket();
   let currentPage = 'grupos';
   let currentBracketRound = 'r32';
   let rankingData = [];
@@ -9,80 +12,76 @@
   let fixtureGrupo = 'all';
   let fixtureJornada = 'all';
 
-  // ── 1. BIND NAV IMMEDIATELY (Safety) ──
-  function setupUI() {
-    // Auth listeners
-    const btnL = document.getElementById('btn-login');
-    const btnLD = document.getElementById('btn-login-drawer');
-    const btnO = document.getElementById('btn-logout');
-    
-    const loginFn = () => DB.login();
-    if (btnL) btnL.addEventListener('click', loginFn);
-    if (btnLD) btnLD.addEventListener('click', loginFn);
-    if (btnO) btnO.addEventListener('click', () => DB.logout());
-
-    DB.onAuth(user => {
-      const area = document.getElementById('user-profile');
-      const lbtn = document.getElementById('btn-login');
-      const lbtnD = document.getElementById('btn-login-drawer');
-      const photo = document.getElementById('user-photo');
-      if (user) {
-        if (lbtn) lbtn.style.display = 'none';
-        if (lbtnD) lbtnD.style.display = 'none';
-        if (area) area.style.display = 'flex';
-        if (photo) photo.src = user.photoURL;
-        showToast(`Bienvenido, ${user.displayName || 'Usuario'}`);
-      } else {
-        if (lbtn) lbtn.style.display = 'block';
-        if (lbtnD) lbtnD.style.display = 'block';
-        if (area) area.style.display = 'none';
-      }
-    });
-    document.querySelectorAll('.nav-btn, .drawer-btn').forEach(btn => {
-      btn.addEventListener('click', () => showPage(btn.dataset.page));
-    });
-    const cta = document.getElementById('hero-cta');
-    if (cta) cta.addEventListener('click', () => showPage('simulador'));
-
-    const hamburger = document.getElementById('hamburger');
-    const navDrawer = document.getElementById('nav-drawer');
-    const drawerOverlay = document.getElementById('drawer-overlay');
-    if (hamburger && navDrawer && drawerOverlay) {
-      hamburger.addEventListener('click', () => {
-        navDrawer.classList.toggle('open');
-        drawerOverlay.classList.toggle('show');
-      });
-      drawerOverlay.addEventListener('click', () => {
-        navDrawer.classList.remove('open');
-        drawerOverlay.classList.remove('show');
-      });
+  // ── PARTICLES ──
+  function createParticles() {
+    const container = document.getElementById('hero-particles');
+    if (!container) return;
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement('div');
+      p.classList.add('particle');
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.animationDuration = `${6 + Math.random() * 10}s`;
+      p.style.animationDelay = `${Math.random() * 10}s`;
+      p.style.width = p.style.height = `${2 + Math.random() * 4}px`;
+      p.style.opacity = (0.3 + Math.random() * 0.5).toString();
+      container.appendChild(p);
     }
-
-    // Filter selects
-    const fG = document.getElementById('filter-grupo');
-    const fJ = document.getElementById('filter-jornada');
-    if (fG) fG.addEventListener('change', e => { fixtureGrupo = e.target.value; renderFixture(); });
-    if (fJ) fJ.addEventListener('change', e => { fixtureJornada = e.target.value; renderFixture(); });
   }
-  setupUI();
-
-  // ── 2. BACKGROUND FOR FIRESTORE ──
-  try {
-    await DB.init();
-    allMatches = await DB.getAllMatches();
-    allBracket = await DB.getAllBracket();
-    showToast('✅ Conectado a la Nube');
-  } catch (err) {
-    console.error('❌ DB Fail:', err);
-    showToast('⚠️ Error: Revisa tus Reglas de Firebase');
-  }
-
-  // Initial renders
-  renderAllMatches();
-  renderBracket();
-  renderRanking();
-  renderEstadios();
   createParticles();
+
+  // ── NAVIGATION ──
+  function showPage(page) {
+    currentPage = page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn, .drawer-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.page === page);
+    });
+    const pageEl = document.getElementById(`page-${page}`);
+    if (pageEl) {
+      pageEl.classList.add('active');
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) window.scrollTo({ top: mainContent.offsetTop - 80, behavior: 'smooth' });
+    }
+    if (page === 'grupos') renderGrupos();
+    if (page === 'fixture') renderFixture();
+    if (page === 'bracket') renderBracket();
+    if (page === 'ranking') renderRanking();
+    if (page === 'simulador') renderSimulador();
+    if (page === 'estadios') renderEstadios();
+    closeDrawer();
+  }
+
+  document.querySelectorAll('.nav-btn, .drawer-btn').forEach(btn => {
+    btn.addEventListener('click', () => showPage(btn.dataset.page));
+  });
+
+  const cta = document.getElementById('hero-cta');
+  if (cta) cta.addEventListener('click', () => showPage('simulador'));
+
+  // ── HAMBURGER ──
+  const hamburger = document.getElementById('hamburger');
+  const navDrawer = document.getElementById('nav-drawer');
+  const drawerOverlay = document.getElementById('drawer-overlay');
+
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      navDrawer.classList.toggle('open');
+      drawerOverlay.classList.toggle('show');
+    });
+  }
+
+  function closeDrawer() {
+    navDrawer.classList.remove('open');
+    drawerOverlay.classList.remove('show');
+  }
+
+  if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+
+  // ── FILTER SELECT ──
+  const fG = document.getElementById('filter-grupo');
+  const fJ = document.getElementById('filter-jornada');
+  if (fG) fG.addEventListener('change', e => { fixtureGrupo = e.target.value; renderFixture(); });
+  if (fJ) fJ.addEventListener('change', e => { fixtureJornada = e.target.value; renderFixture(); });
 
   // ══════════════════════════════════════════════
   //  BRACKET TREE — Maps each match to where its winner/loser advances
@@ -256,76 +255,6 @@
       if (currentPage === 'bracket') renderBracket();
     }
   }
-
-  // ── PARTICLES ──
-  function createParticles() {
-    const container = document.getElementById('hero-particles');
-    for (let i = 0; i < 30; i++) {
-      const p = document.createElement('div');
-      p.classList.add('particle');
-      p.style.left = `${Math.random() * 100}%`;
-      p.style.animationDuration = `${6 + Math.random() * 10}s`;
-      p.style.animationDelay = `${Math.random() * 10}s`;
-      p.style.width = p.style.height = `${2 + Math.random() * 4}px`;
-      p.style.opacity = (0.3 + Math.random() * 0.5).toString();
-      container.appendChild(p);
-    }
-  }
-  createParticles();
-
-  // ── NAVIGATION ──
-  function showPage(page) {
-    currentPage = page;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn, .drawer-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.page === page);
-    });
-    const pageEl = document.getElementById(`page-${page}`);
-    if (pageEl) {
-      pageEl.classList.add('active');
-      window.scrollTo({ top: document.getElementById('main-content').offsetTop - 80, behavior: 'smooth' });
-    }
-    if (page === 'grupos') renderGrupos();
-    if (page === 'fixture') renderFixture();
-    if (page === 'bracket') renderBracket();
-    if (page === 'ranking') renderRanking();
-    if (page === 'simulador') renderSimulador();
-    if (page === 'estadios') renderEstadios();
-    closeDrawer();
-  }
-
-  document.querySelectorAll('.nav-btn, .drawer-btn').forEach(btn => {
-    btn.addEventListener('click', () => showPage(btn.dataset.page));
-  });
-
-  document.getElementById('hero-cta').addEventListener('click', () => showPage('simulador'));
-
-  // ── HAMBURGER ──
-  const hamburger = document.getElementById('hamburger');
-  const navDrawer = document.getElementById('nav-drawer');
-  const drawerOverlay = document.getElementById('drawer-overlay');
-
-  hamburger.addEventListener('click', () => {
-    navDrawer.classList.toggle('open');
-    drawerOverlay.classList.toggle('show');
-  });
-
-  function closeDrawer() {
-    navDrawer.classList.remove('open');
-    drawerOverlay.classList.remove('show');
-  }
-
-  drawerOverlay.addEventListener('click', closeDrawer);
-
-  // ── FILTER SELECT ──
-  document.getElementById('filter-grupo').addEventListener('change', e => {
-    fixtureGrupo = e.target.value;
-    renderFixture();
-  });
-  document.getElementById('filter-jornada').addEventListener('change', e => {
-    fixtureJornada = e.target.value;
-    renderFixture();
-  });
 
   // ── FLAG URL ──
   function flagUrl(country, size = 'w40') {

@@ -1,169 +1,152 @@
 // =====================================================
-//  FIFA WORLD CUP 2026 — FIREBASE FIRESTORE DATABASE
+//  FIFA WORLD CUP 2026 — IndexedDB DATABASE LAYER
+//  Provides persistent storage for scores and results
 // =====================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBzfw3FS39YWksydkzuum9vXRy_VpnnnKQ",
-  authDomain: "mundial2026-a200b.firebaseapp.com",
-  projectId: "mundial2026-a200b",
-  storageBucket: "mundial2026-a200b.firebasestorage.app",
-  messagingSenderId: "170936426494",
-  appId: "1:170936426494:web:60cc416bf353867ddfaaaf",
-  measurementId: "G-RGKPRC2CDC"
-};
-
-// Initialize
-const app = initializeApp(firebaseConfig);
-const firestore = getFirestore(app);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
 const DB = (() => {
-  const COLLECTIONS = {
+  const DB_NAME = 'WorldCup2026';
+  const DB_VERSION = 2;
+  let db = null;
+
+  const STORES = {
     MATCHES: 'matches',
     BRACKET: 'bracket',
     SETTINGS: 'settings',
     RANKING: 'ranking',
   };
 
-  let currentUser = null;
+  // ── OPEN / INIT ──
+  function open() {
+    return new Promise((resolve, reject) => {
+      if (db) { resolve(db); return; }
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
 
-  async function login() {
-    try {
-      const res = await signInWithPopup(auth, provider);
-      return res.user;
-    } catch (e) { console.error('Login Fail', e); return null; }
-  }
+      req.onupgradeneeded = (e) => {
+        const idb = e.target.result;
+        if (!idb.objectStoreNames.contains(STORES.MATCHES)) {
+          const matchStore = idb.createObjectStore(STORES.MATCHES, { keyPath: 'id' });
+          matchStore.createIndex('grupo', 'grupo', { unique: false });
+        }
+        if (!idb.objectStoreNames.contains(STORES.BRACKET)) {
+          idb.createObjectStore(STORES.BRACKET, { keyPath: 'id' });
+        }
+        if (!idb.objectStoreNames.contains(STORES.SETTINGS)) {
+          idb.createObjectStore(STORES.SETTINGS, { keyPath: 'key' });
+        }
+        if (!idb.objectStoreNames.contains(STORES.RANKING)) {
+          idb.createObjectStore(STORES.RANKING, { keyPath: 'rank' });
+        }
+      };
 
-  async function logout() { await signOut(auth); }
-
-  function onAuth(cb) {
-    onAuthStateChanged(auth, user => {
-      currentUser = user;
-      cb(user);
+      req.onsuccess = (e) => {
+        db = e.target.result;
+        resolve(db);
+      };
+      req.onerror = () => reject(req.error);
     });
   }
 
-  // ── INIT FIRESTORE ──
-  async function init() {
-    try {
-      console.log('📡 Conectando a Firebase...');
-      
-      const matchesCol = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
-      if (matchesCol.empty) {
-        console.log('🌱 Cloud Seeding: Matches...');
-        const batch = writeBatch(firestore);
-        WC2026.generateFixture().forEach(m => {
-          batch.set(doc(firestore, COLLECTIONS.MATCHES, m.id), m);
-        });
-        await batch.commit();
-      }
-
-      const bracketCol = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
-      if (bracketCol.empty) {
-        console.log('🌱 Cloud Seeding: Bracket...');
-        const batch = writeBatch(firestore);
-        Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
-          data.matches.forEach(m => {
-            batch.set(doc(firestore, COLLECTIONS.BRACKET, m.id), { 
-              ...m, round, scoreHome: null, scoreAway: null, penHome: null, penAway: null 
-            });
-          });
-        });
-        await batch.commit();
-      }
-      
-      const rankingCol = await getDocs(collection(firestore, COLLECTIONS.RANKING));
-      if (rankingCol.empty) {
-        await saveRanking(WC2026.fifaRanking);
-      }
-      
-      console.log('✅ Firebase conectado y sincronizado.');
-    } catch (error) {
-      console.error('❌ Firebase Error detallado:', error);
-      throw error;
-    }
+  function tx(storeName, mode) {
+    return db.transaction(storeName, mode).objectStore(storeName);
   }
 
-  async function getAllMatches() {
-    const snap = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
-    return snap.docs.map(d => d.data());
-  }
-
-  async function updateMatch(match) {
-    const ref = doc(firestore, COLLECTIONS.MATCHES, match.id);
-    return setDoc(ref, match, { merge: true });
-  }
-
-  async function resetMatches() {
-    const batch = writeBatch(firestore);
-    WC2026.generateFixture().forEach(m => {
-      batch.set(doc(firestore, COLLECTIONS.MATCHES, m.id), m);
+  function getAll(storeName) {
+    return new Promise((resolve, reject) => {
+      const q = tx(storeName, 'readonly').getAll();
+      q.onsuccess = () => resolve(q.result);
+      q.onerror = () => reject(q.error);
     });
-    return batch.commit();
   }
 
-  async function getAllBracket() {
-    const snap = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
-    return snap.docs.map(d => d.data());
+  function getOne(storeName, key) {
+    return new Promise((resolve, reject) => {
+      const req = tx(storeName, 'readonly').get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
   }
 
-  async function updateBracketMatch(match) {
-    const ref = doc(firestore, COLLECTIONS.BRACKET, match.id);
-    return setDoc(ref, match, { merge: true });
+  function putOne(storeName, item) {
+    return new Promise((resolve, reject) => {
+      const req = tx(storeName, 'readwrite').put(item);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
   }
 
-  async function resetBracket() {
-    const batch = writeBatch(firestore);
-    Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
-      data.matches.forEach(m => {
-        batch.set(doc(firestore, COLLECTIONS.BRACKET, m.id), { 
-          ...m, round, scoreHome: null, scoreAway: null, penHome: null, penAway: null 
-        });
+  function putMany(storeName, items) {
+    return new Promise((resolve, reject) => {
+      const store = tx(storeName, 'readwrite');
+      let count = 0;
+      if (items.length === 0) { resolve(); return; }
+      items.forEach(item => {
+        const req = store.put(item);
+        req.onsuccess = () => { count++; if (count === items.length) resolve(); };
+        req.onerror = () => reject(req.error);
       });
     });
-    return batch.commit();
   }
 
-  async function saveRanking(data) {
-    const batch = writeBatch(firestore);
-    data.forEach(r => {
-      batch.set(doc(firestore, COLLECTIONS.RANKING, r.rank.toString()), r);
+  function clearStore(storeName) {
+    return new Promise((resolve, reject) => {
+      const req = tx(storeName, 'readwrite').clear();
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
     });
-    await batch.commit();
-    await setSetting('ranking_updated', new Date().toISOString());
+  }
+
+  // ── MATCHES ──
+  async function getAllMatches() { return getAll(STORES.MATCHES); }
+  async function updateMatch(match) { return putOne(STORES.MATCHES, match); }
+  async function resetMatches() {
+    await clearStore(STORES.MATCHES);
+    await putMany(STORES.MATCHES, WC2026.generateFixture());
+  }
+
+  // ── BRACKET ──
+  async function getAllBracket() { return getAll(STORES.BRACKET); }
+  async function updateBracketMatch(match) { return putOne(STORES.BRACKET, match); }
+  async function resetBracket() {
+    await clearStore(STORES.BRACKET);
+    const bracketMatches = [];
+    Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
+      data.matches.forEach(m => bracketMatches.push({ ...m, round, scoreHome: null, scoreAway: null, penHome: null, penAway: null }));
+    });
+    await putMany(STORES.BRACKET, bracketMatches);
+  }
+
+  // ── RANKING ──
+  async function saveRanking(data) {
+    await clearStore(STORES.RANKING);
+    await putMany(STORES.RANKING, data);
+    await putOne(STORES.SETTINGS, { key: 'ranking_updated', value: new Date().toISOString() });
   }
 
   async function getCachedRanking() {
-    const snap = await getDocs(collection(firestore, COLLECTIONS.RANKING));
-    const data = snap.docs.map(d => d.data()).sort((a,b) => a.rank - b.rank);
-    const updated = await getSetting('ranking_updated');
-    return { data, updatedAt: updated };
+    const data = await getAll(STORES.RANKING);
+    const meta = await getOne(STORES.SETTINGS, 'ranking_updated');
+    return { data: data.sort((a,b) => a.rank - b.rank), updatedAt: meta?.value };
   }
 
+  // ── SETTINGS ──
   async function getSetting(key) {
-    const snap = await getDoc(doc(firestore, COLLECTIONS.SETTINGS, key));
-    return snap.exists() ? snap.data().value : null;
+    const r = await getOne(STORES.SETTINGS, key);
+    return r?.value;
   }
-
   async function setSetting(key, value) {
-    return setDoc(doc(firestore, COLLECTIONS.SETTINGS, key), { value });
+    return putOne(STORES.SETTINGS, { key, value });
   }
 
-  return {
-    init,
-    getAllMatches, updateMatch, resetMatches,
-    getAllBracket, updateBracketMatch, resetBracket,
-    saveRanking, getCachedRanking,
-    getSetting, setSetting,
-    login, logout, onAuth
-  };
-})();
+  // ── INIT ──
+  async function init() {
+    await open();
+    const matches = await getAllMatches();
+    if (matches.length === 0) await resetMatches();
+    const bracket = await getAllBracket();
+    if (bracket.length === 0) await resetBracket();
+    const rank = await getAll(STORES.RANKING);
+    if (rank.length === 0) await saveRanking(WC2026.fifaRanking);
+  }
 
-window.DB = DB;
+  return { init, getAllMatches, updateMatch, resetMatches, getAllBracket, updateBracketMatch, resetBracket, saveRanking, getCachedRanking, getSetting, setSetting };
+})();
