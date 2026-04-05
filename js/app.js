@@ -4,8 +4,7 @@
     await DB.init();
   } catch (err) {
     console.error('❌ DB Init error:', err);
-    showToast('⚠️ Error de conexión: Revisa tus reglas en Firebase Console');
-    // Continue if possible (offline mode fallback is not fully implemented but avoids bricking)
+    showToast('⚠️ Error: Revisa tus Reglas de Firebase');
   }
 
   // ── STATE ──
@@ -14,14 +13,25 @@
   try {
     allMatches = await DB.getAllMatches();
     allBracket = await DB.getAllBracket();
-  } catch (e) { console.error('Data load fail', e); }
+  } catch (e) { 
+    console.error('Data load fail', e); 
+    // Fallback if empty
+    allMatches = [];
+    allBracket = [];
+  }
 
   let currentPage = 'grupos';
   let currentBracketRound = 'r32';
   let rankingData = [];
-  let rankingTab = 'oficial';  // 'oficial' | 'simulado'
+  let rankingTab = 'oficial';
   let fixtureGrupo = 'all';
   let fixtureJornada = 'all';
+
+  // Initial Render to prevent empty screen
+  renderAllMatches();
+  renderBracket();
+  renderRanking();
+  renderEstadios();
 
   // ══════════════════════════════════════════════
   //  BRACKET TREE — Maps each match to where its winner/loser advances
