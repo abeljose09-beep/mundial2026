@@ -13,21 +13,28 @@
   function setupUI() {
     // Auth listeners
     const btnL = document.getElementById('btn-login');
+    const btnLD = document.getElementById('btn-login-drawer');
     const btnO = document.getElementById('btn-logout');
-    if (btnL) btnL.addEventListener('click', () => DB.login());
+    
+    const loginFn = () => DB.login();
+    if (btnL) btnL.addEventListener('click', loginFn);
+    if (btnLD) btnLD.addEventListener('click', loginFn);
     if (btnO) btnO.addEventListener('click', () => DB.logout());
 
     DB.onAuth(user => {
       const area = document.getElementById('user-profile');
       const lbtn = document.getElementById('btn-login');
+      const lbtnD = document.getElementById('btn-login-drawer');
       const photo = document.getElementById('user-photo');
       if (user) {
         if (lbtn) lbtn.style.display = 'none';
+        if (lbtnD) lbtnD.style.display = 'none';
         if (area) area.style.display = 'flex';
         if (photo) photo.src = user.photoURL;
         showToast(`Bienvenido, ${user.displayName || 'Usuario'}`);
       } else {
         if (lbtn) lbtn.style.display = 'block';
+        if (lbtnD) lbtnD.style.display = 'block';
         if (area) area.style.display = 'none';
       }
     });
