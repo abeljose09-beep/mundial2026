@@ -265,15 +265,15 @@
   <div class="toast" id="toast"></div>
 
   <!-- SCRIPTS -->
-  <script>
+  <script type="module">
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js')
         .then(() => console.log('SW Registered'))
         .catch(err => console.log('SW Failed', err));
     }
   </script>
-  <script src="js/data.js?v=2.4"></script>
-  <script src="js/db.js?v=2.4"></script>
-  <script src="js/app.js?v=2.6"></script>
+  <script type="module" src="js/data.js?v=2.4"></script>
+  <script type="module" src="js/db.js?v=2.6"></script>
+  <script type="module" src="js/app.js?v=2.6"></script>
 </body>
 </html>

@@ -1,189 +1,139 @@
 // =====================================================
-//  FIFA WORLD CUP 2026 — IndexedDB DATABASE LAYER
-//  Provides persistent storage for scores and results
+//  FIFA WORLD CUP 2026 — FIREBASE FIRESTORE DATABASE
 // =====================================================
 
-const DB = (() => {
-  const DB_NAME = 'WorldCup2026';
-  const DB_VERSION = 2;   // bumped: forces re-seed of ranking with corrected 48 WC teams
-  let db = null;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const STORES = {
+const firebaseConfig = {
+  apiKey: "AIzaSyBzfw3FS39YWksydkzuum9vXRy_VpnnnKQ",
+  authDomain: "mundial2026-a200b.firebaseapp.com",
+  projectId: "mundial2026-a200b",
+  storageBucket: "mundial2026-a200b.firebasestorage.app",
+  messagingSenderId: "170936426494",
+  appId: "1:170936426494:web:60cc416bf353867ddfaaaf",
+  measurementId: "G-RGKPRC2CDC"
+};
+
+// Initialize
+const app = initializeApp(firebaseConfig);
+const firestore = getFirestore(app);
+
+const DB = (() => {
+  const COLLECTIONS = {
     MATCHES: 'matches',
     BRACKET: 'bracket',
     SETTINGS: 'settings',
     RANKING: 'ranking',
   };
 
-  // ── OPEN / INIT ──
-  function open() {
-    return new Promise((resolve, reject) => {
-      if (db) { resolve(db); return; }
-
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-
-      req.onupgradeneeded = (e) => {
-        const idb = e.target.result;
-
-        if (!idb.objectStoreNames.contains(STORES.MATCHES)) {
-          const matchStore = idb.createObjectStore(STORES.MATCHES, { keyPath: 'id' });
-          matchStore.createIndex('grupo', 'grupo', { unique: false });
-          matchStore.createIndex('jornada', 'jornada', { unique: false });
-        }
-
-        if (!idb.objectStoreNames.contains(STORES.BRACKET)) {
-          idb.createObjectStore(STORES.BRACKET, { keyPath: 'id' });
-        }
-
-        if (!idb.objectStoreNames.contains(STORES.SETTINGS)) {
-          idb.createObjectStore(STORES.SETTINGS, { keyPath: 'key' });
-        }
-
-        if (!idb.objectStoreNames.contains(STORES.RANKING)) {
-          idb.createObjectStore(STORES.RANKING, { keyPath: 'rank' });
-        }
-      };
-
-      req.onsuccess = (e) => {
-        db = e.target.result;
-        resolve(db);
-      };
-
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  // ── GENERIC HELPERS ──
-  function tx(storeName, mode = 'readonly') {
-    return db.transaction([storeName], mode).objectStore(storeName);
-  }
-
-  function getAll(storeName) {
-    return new Promise((resolve, reject) => {
-      const req = tx(storeName).getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  function getOne(storeName, key) {
-    return new Promise((resolve, reject) => {
-      const req = tx(storeName).get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  function putOne(storeName, obj) {
-    return new Promise((resolve, reject) => {
-      const req = tx(storeName, 'readwrite').put(obj);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  function putMany(storeName, items) {
-    return new Promise((resolve, reject) => {
-      const store = tx(storeName, 'readwrite');
-      let count = 0;
-      if (items.length === 0) { resolve(); return; }
-      items.forEach(item => {
-        const req = store.put(item);
-        req.onsuccess = () => { count++; if (count === items.length) resolve(); };
-        req.onerror = () => reject(req.error);
+  // ── INIT FIRESTORE ──
+  async function init() {
+    // Check if initial data exists, if not seed it once
+    const matchesCol = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
+    if (matchesCol.empty) {
+      console.log('🌱 Seeding Firestore with initial matches...');
+      const batch = writeBatch(firestore);
+      WC2026.generateFixture().forEach(m => {
+        const ref = doc(firestore, COLLECTIONS.MATCHES, m.id);
+        batch.set(ref, m);
       });
-    });
-  }
+      await batch.commit();
+    }
 
-  function clearStore(storeName) {
-    return new Promise((resolve, reject) => {
-      const req = tx(storeName, 'readwrite').clear();
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
+    const bracketCol = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
+    if (bracketCol.empty) {
+      console.log('🌱 Seeding Firestore with initial bracket...');
+      const batch = writeBatch(firestore);
+      Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
+        data.matches.forEach(m => {
+          const ref = doc(firestore, COLLECTIONS.BRACKET, m.id);
+          batch.set(ref, { ...m, round, scoreHome: null, scoreAway: null });
+        });
+      });
+      await batch.commit();
+    }
+    
+    // Seed ranking if empty
+    const rankingCol = await getDocs(collection(firestore, COLLECTIONS.RANKING));
+    if (rankingCol.empty) {
+      await seedRanking(WC2026.fifaRanking);
+    }
   }
 
   // ── MATCHES ──
-  async function initMatches() {
-    const existing = await getAll(STORES.MATCHES);
-    if (existing.length === 0) {
-      const fixture = WC2026.generateFixture();
-      await putMany(STORES.MATCHES, fixture);
-    }
-  }
-
   async function getAllMatches() {
-    return getAll(STORES.MATCHES);
+    const snap = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
+    return snap.docs.map(d => d.data());
   }
 
   async function updateMatch(match) {
-    return putOne(STORES.MATCHES, match);
+    const ref = doc(firestore, COLLECTIONS.MATCHES, match.id);
+    return setDoc(ref, match, { merge: true });
   }
 
   async function resetMatches() {
-    await clearStore(STORES.MATCHES);
-    const fixture = WC2026.generateFixture();
-    await putMany(STORES.MATCHES, fixture);
+    const batch = writeBatch(firestore);
+    WC2026.generateFixture().forEach(m => {
+      const ref = doc(firestore, COLLECTIONS.MATCHES, m.id);
+      batch.set(ref, m);
+    });
+    return batch.commit();
   }
 
   // ── BRACKET ──
-  async function initBracket() {
-    const existing = await getAll(STORES.BRACKET);
-    if (existing.length === 0) {
-      const allMatches = [];
-      Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
-        data.matches.forEach(m => allMatches.push({ ...m, round, scoreHome: null, scoreAway: null }));
-      });
-      await putMany(STORES.BRACKET, allMatches);
-    }
-  }
-
   async function getAllBracket() {
-    return getAll(STORES.BRACKET);
+    const snap = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
+    return snap.docs.map(d => d.data());
   }
 
   async function updateBracketMatch(match) {
-    return putOne(STORES.BRACKET, match);
+    const ref = doc(firestore, COLLECTIONS.BRACKET, match.id);
+    return setDoc(ref, match, { merge: true });
   }
 
   async function resetBracket() {
-    await clearStore(STORES.BRACKET);
-    await initBracket();
+    const batch = writeBatch(firestore);
+    Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
+      data.matches.forEach(m => {
+        const ref = doc(firestore, COLLECTIONS.BRACKET, m.id);
+        batch.set(ref, { ...m, round, scoreHome: null, scoreAway: null, penHome: null, penAway: null });
+      });
+    });
+    return batch.commit();
   }
 
-  // ── RANKING CACHE ──
+  // ── RANKING ──
+  async function seedRanking(data) {
+    const batch = writeBatch(firestore);
+    data.forEach(r => {
+      const ref = doc(firestore, COLLECTIONS.RANKING, r.rank.toString());
+      batch.set(ref, r);
+    });
+    await batch.commit();
+  }
+
   async function saveRanking(data) {
-    await clearStore(STORES.RANKING);
-    await putMany(STORES.RANKING, data);
-    await putOne(STORES.SETTINGS, { key: 'ranking_updated', value: new Date().toISOString() });
+    // Only update if needed or rewrite all
+    await seedRanking(data);
+    await setSetting('ranking_updated', new Date().toISOString());
   }
 
   async function getCachedRanking() {
-    const data = await getAll(STORES.RANKING);
-    const meta = await getOne(STORES.SETTINGS, 'ranking_updated');
-    return { data: data.sort((a, b) => a.rank - b.rank), updatedAt: meta?.value };
+    const snap = await getDocs(collection(firestore, COLLECTIONS.RANKING));
+    const data = snap.docs.map(d => d.data()).sort((a,b) => a.rank - b.rank);
+    const updated = await getSetting('ranking_updated');
+    return { data, updatedAt: updated };
   }
 
   // ── SETTINGS ──
   async function getSetting(key) {
-    const r = await getOne(STORES.SETTINGS, key);
-    return r?.value;
+    const snap = await getDoc(doc(firestore, COLLECTIONS.SETTINGS, key));
+    return snap.exists() ? snap.data().value : null;
   }
 
   async function setSetting(key, value) {
-    return putOne(STORES.SETTINGS, { key, value });
-  }
-
-  // ── INIT ALL ──
-  async function init() {
-    await open();
-    await initMatches();
-    await initBracket();
-    // Always reseed ranking if empty or count differs from expected 48
-    const ranking = await getCachedRanking();
-    if (ranking.data.length !== WC2026.fifaRanking.length) {
-      await saveRanking(WC2026.fifaRanking);
-    }
+    return setDoc(doc(firestore, COLLECTIONS.SETTINGS, key), { value });
   }
 
   return {
@@ -194,3 +144,6 @@ const DB = (() => {
     getSetting, setSetting,
   };
 })();
+
+// Export globally for app.js
+window.DB = DB;

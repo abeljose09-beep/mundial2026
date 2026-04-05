@@ -317,3 +317,6 @@ const WC2026 = {
     }
   }
 };
+
+// Global expose for modules
+window.WC2026 = WC2026;
