@@ -1,25 +1,7 @@
 (async () => {
-  // ── INIT DB ──
-  try {
-    await DB.init();
-  } catch (err) {
-    console.error('❌ DB Init error:', err);
-    showToast('⚠️ Error: Revisa tus Reglas de Firebase');
-  }
-
-  // ── STATE ──
+  // ── 0. GLOBAL STATE ──
   let allMatches = [];
   let allBracket = [];
-  try {
-    allMatches = await DB.getAllMatches();
-    allBracket = await DB.getAllBracket();
-  } catch (e) { 
-    console.error('Data load fail', e); 
-    // Fallback if empty
-    allMatches = [];
-    allBracket = [];
-  }
-
   let currentPage = 'grupos';
   let currentBracketRound = 'r32';
   let rankingData = [];
@@ -27,11 +9,53 @@
   let fixtureGrupo = 'all';
   let fixtureJornada = 'all';
 
-  // Initial Render to prevent empty screen
+  // ── 1. BIND NAV IMMEDIATELY (Safety) ──
+  function setupUI() {
+    document.querySelectorAll('.nav-btn, .drawer-btn').forEach(btn => {
+      btn.addEventListener('click', () => showPage(btn.dataset.page));
+    });
+    const cta = document.getElementById('hero-cta');
+    if (cta) cta.addEventListener('click', () => showPage('simulador'));
+
+    const hamburger = document.getElementById('hamburger');
+    const navDrawer = document.getElementById('nav-drawer');
+    const drawerOverlay = document.getElementById('drawer-overlay');
+    if (hamburger && navDrawer && drawerOverlay) {
+      hamburger.addEventListener('click', () => {
+        navDrawer.classList.toggle('open');
+        drawerOverlay.classList.toggle('show');
+      });
+      drawerOverlay.addEventListener('click', () => {
+        navDrawer.classList.remove('open');
+        drawerOverlay.classList.remove('show');
+      });
+    }
+
+    // Filter selects
+    const fG = document.getElementById('filter-grupo');
+    const fJ = document.getElementById('filter-jornada');
+    if (fG) fG.addEventListener('change', e => { fixtureGrupo = e.target.value; renderFixture(); });
+    if (fJ) fJ.addEventListener('change', e => { fixtureJornada = e.target.value; renderFixture(); });
+  }
+  setupUI();
+
+  // ── 2. BACKGROUND FOR FIRESTORE ──
+  try {
+    await DB.init();
+    allMatches = await DB.getAllMatches();
+    allBracket = await DB.getAllBracket();
+    showToast('✅ Conectado a la Nube');
+  } catch (err) {
+    console.error('❌ DB Fail:', err);
+    showToast('⚠️ Error: Revisa tus Reglas de Firebase');
+  }
+
+  // Initial renders
   renderAllMatches();
   renderBracket();
   renderRanking();
   renderEstadios();
+  createParticles();
 
   // ══════════════════════════════════════════════
   //  BRACKET TREE — Maps each match to where its winner/loser advances
