@@ -1,15 +1,21 @@
-// =====================================================
-//  FIFA WORLD CUP 2026 — MAIN APPLICATION
-// =====================================================
-
 (async () => {
-
   // ── INIT DB ──
-  await DB.init();
+  try {
+    await DB.init();
+  } catch (err) {
+    console.error('❌ DB Init error:', err);
+    showToast('⚠️ Error de conexión: Revisa tus reglas en Firebase Console');
+    // Continue if possible (offline mode fallback is not fully implemented but avoids bricking)
+  }
 
   // ── STATE ──
-  let allMatches = await DB.getAllMatches();
-  let allBracket = await DB.getAllBracket();
+  let allMatches = [];
+  let allBracket = [];
+  try {
+    allMatches = await DB.getAllMatches();
+    allBracket = await DB.getAllBracket();
+  } catch (e) { console.error('Data load fail', e); }
+
   let currentPage = 'grupos';
   let currentBracketRound = 'r32';
   let rankingData = [];
