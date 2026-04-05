@@ -436,22 +436,27 @@ body {
 
 .grupo-table { width: 100%; border-collapse: collapse; }
 .grupo-table th {
-  font-size: 10px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   color: var(--text-dim);
-  padding: 8px 10px 6px;
-  text-align: center;
+  padding: 6px 4px;
 }
-.grupo-table th:first-child { text-align: left; }
 .grupo-table td {
-  padding: 10px 10px;
+  padding: 8px 4px;
   border-top: 1px solid rgba(255,255,255,0.04);
-  font-size: 13px;
-  text-align: center;
-  vertical-align: middle;
+  font-size: 11px;
 }
-.grupo-table td:first-child { text-align: left; }
+@media (max-width: 600px) {
+  .grupos-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .grupo-header { padding: 10px 14px; }
+  .grupo-name { font-size: 16px; }
+  .team-cell { gap: 6px; }
+  .team-cell img { width: 22px; height: 16px; }
+}
 .grupo-table tr:hover td { background: rgba(255,215,0,0.04); }
 
 .team-cell {
