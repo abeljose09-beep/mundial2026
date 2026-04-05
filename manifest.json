@@ -1,0 +1,17 @@
+{
+  "name": "Mundial 2026 Simulator",
+  "short_name": "Mundial2026",
+  "description": "Simulador oficial y ranking FIFA para el Mundial 2026",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a12",
+  "theme_color": "#ffd700",
+  "icons": [
+    {
+      "src": "https://flagcdn.com/w160/co.png",
+      "sizes": "160x160",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

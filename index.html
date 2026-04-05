@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FIFA World Cup 2026 – Simulador</title>
+  <meta name="description" content="Simulador interactivo del Mundial FIFA 2026 con grupos, fixture, resultados, ranking FIFA actualizado y banderas de todos los países participantes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/bracket.css?v=2.6" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffd700" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <div class="logo-area">
+        <div class="logo-badge">
+          <span class="logo-icon">⚽</span>
+          <div class="logo-text">
+            <span class="logo-title">FIFA WORLD CUP</span>
+            <span class="logo-year">2026</span>
+          </div>
+        </div>
+        <div class="host-flags">
+          <img src="https://flagcdn.com/h20/us.png" alt="USA" title="USA" />
+          <img src="https://flagcdn.com/h20/mx.png" alt="México" title="México" />
+          <img src="https://flagcdn.com/h20/ca.png" alt="Canadá" title="Canadá" />
+        </div>
+      </div>
+      <nav class="nav" id="main-nav">
+        <button class="nav-btn active" data-page="grupos" id="nav-grupos">🏆 Grupos</button>
+        <button class="nav-btn" data-page="fixture" id="nav-fixture">📅 Fixture</button>
+        <button class="nav-btn" data-page="bracket" id="nav-bracket">🔥 Llaves</button>
+        <button class="nav-btn" data-page="ranking" id="nav-ranking">📊 Ranking FIFA</button>
+        <button class="nav-btn" data-page="simulador" id="nav-simulador">🎮 Simulador</button>
+        <button class="nav-btn" data-page="estadios" id="nav-estadios">🏟️ Estadios</button>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE NAV DRAWER -->
+  <div class="nav-drawer" id="nav-drawer">
+    <button class="drawer-btn active" data-page="grupos">🏆 Grupos</button>
+    <button class="drawer-btn" data-page="fixture">📅 Fixture</button>
+    <button class="drawer-btn" data-page="bracket">🔥 Llaves</button>
+    <button class="drawer-btn" data-page="ranking">📊 Ranking FIFA</button>
+    <button class="drawer-btn" data-page="simulador">🎮 Simulador</button>
+    <button class="drawer-btn" data-page="estadios">🏟️ Estadios</button>
+  </div>
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+
+  <!-- HERO -->
+  <div class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-particles" id="hero-particles"></div>
+    <div class="hero-content">
+      <p class="hero-sub">11 JUN – 19 JUL · USA · MÉXICO · CANADÁ</p>
+      <h1 class="hero-title">SIMULADOR<br/><span class="hero-highlight">MUNDIAL 2026</span></h1>
+      <p class="hero-desc">48 selecciones · 12 grupos · 104 partidos · El torneo más grande de la historia</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="stat-num">48</span><span class="stat-lbl">Equipos</span></div>
+        <div class="hero-stat"><span class="stat-num">12</span><span class="stat-lbl">Grupos</span></div>
+        <div class="hero-stat"><span class="stat-num">104</span><span class="stat-lbl">Partidos</span></div>
+        <div class="hero-stat"><span class="stat-num">16</span><span class="stat-lbl">Estadios</span></div>
+      </div>
+      <button class="hero-cta" id="hero-cta">¡Simular Ahora!</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="main-content">
+    <!-- GRUPOS PAGE -->
+    <section class="page active" id="page-grupos">
+      <div class="page-header">
+        <h2 class="page-title">🏆 Fase de Grupos</h2>
+        <p class="page-sub">12 grupos · Los 2 primeros y los 8 mejores terceros avanzan</p>
+      </div>
+      <div class="grupos-grid" id="grupos-grid"></div>
+    </section>
+
+    <!-- FIXTURE PAGE -->
+    <section class="page" id="page-fixture">
+      <div class="page-header">
+        <h2 class="page-title">📅 Fixture Completo</h2>
+        <p class="page-sub">Todos los partidos de la fase de grupos</p>
+      </div>
+      <div class="fixture-filters">
+        <select id="filter-grupo" class="filter-select">
+          <option value="all">Todos los Grupos</option>
+        </select>
+        <select id="filter-jornada" class="filter-select">
+          <option value="all">Todas las Jornadas</option>
+          <option value="1">Jornada 1</option>
+          <option value="2">Jornada 2</option>
+          <option value="3">Jornada 3</option>
+        </select>
+      </div>
+      <div class="fixture-list" id="fixture-list"></div>
+    </section>
+
+    <!-- BRACKET PAGE -->
+    <section class="page" id="page-bracket">
+      <div class="page-header">
+        <h2 class="page-title">🔥 Cuadro Eliminatorio</h2>
+        <p class="page-sub">Clic en cualquier partido para ingresar el marcador</p>
+      </div>
+      <div class="bk-round-labels" id="bk-round-labels">
+        <span>Ronda&nbsp;32</span><span>Octavos</span><span>Cuartos</span><span>Semis</span>
+        <span class="bk-lbl-center">🏆 Final</span>
+        <span>Semis</span><span>Cuartos</span><span>Octavos</span><span>Ronda&nbsp;32</span>
+      </div>
+      <div class="bk-scroll-wrap">
+        <div class="bk-bracket" id="bk-bracket"></div>
+      </div>
+    </section>
+
+    <!-- Score Modal -->
+    <div class="bk-modal" id="bk-modal">
+      <div class="bk-modal-box">
+        <h3 class="bk-modal-title" id="bk-modal-title">Ingresar Resultado</h3>
+        <div class="bk-modal-match" id="bk-modal-match"></div>
+        <div class="bk-modal-inputs">
+          <input type="number" min="0" max="30" id="bk-score-home" class="bk-score-in" placeholder="0" />
+          <span class="bk-score-sep">–</span>
+          <input type="number" min="0" max="30" id="bk-score-away" class="bk-score-in" placeholder="0" />
+        </div>
+
+        <!-- Penalty section: shown only on draw -->
+        <div id="bk-penalty-section" class="bk-penalty-section" style="display:none">
+          <div class="bk-penalty-label">⚽️ Definición por penales</div>
+          <div class="bk-modal-inputs">
+            <input type="number" min="0" max="30" id="bk-pen-home" class="bk-score-in bk-pen-in" placeholder="0" />
+            <span class="bk-score-sep" style="font-size:18px">–</span>
+            <input type="number" min="0" max="30" id="bk-pen-away" class="bk-score-in bk-pen-in" placeholder="0" />
+          </div>
+        </div>
+        <p class="bk-modal-hint" id="bk-modal-hint"></p>
+        <div class="bk-modal-btns">
+          <button class="bk-btn-cancel" id="bk-btn-cancel">Cancelar</button>
+          <button class="bk-btn-save" id="bk-btn-save">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKING PAGE -->
+    <section class="page" id="page-ranking">
+      <div class="page-header">
+        <h2 class="page-title">📊 Ranking FIFA</h2>
+        <p class="page-sub">Ranking oficial + simulación Elo en tiempo real</p>
+      </div>
+
+      <!-- Ranking mode tabs -->
+      <div class="ranking-tabs">
+        <button class="ranking-tab active" id="rtab-oficial" data-tab="oficial">📊 Ranking Oficial</button>
+        <button class="ranking-tab" id="rtab-simulado" data-tab="simulado">🎮 Ranking Simulado</button>
+      </div>
+
+      <!-- Panel Oficial -->
+      <div id="ranking-panel-oficial">
+        <div class="ranking-controls">
+          <button class="btn-refresh" id="btn-refresh-ranking">🔄 Actualizar Ranking</button>
+          <span class="ranking-date" id="ranking-date">Cargando...</span>
+        </div>
+        <div class="ranking-table-wrap">
+          <table class="ranking-table">
+            <thead>
+              <tr><th>#</th><th>País</th><th>Puntos Elo</th><th>Movimiento</th></tr>
+            </thead>
+            <tbody id="ranking-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Panel Simulado -->
+      <div id="ranking-panel-simulado" style="display:none">
+        <div class="ranking-sim-header">
+          <div class="ranking-sim-info">
+            <span class="sim-info-badge">🧮 Fórmula Elo FIFA</span>
+            <span class="sim-info-text">Rn = Ro + I × (W − We) &nbsp;·&nbsp; I=50 (grupos) I=60 (QF+) &nbsp;·&nbsp; We = 1/(10^(−Δr/600)+1)</span>
+          </div>
+          <span class="sim-matches-count" id="sim-matches-count">0 partidos simulados</span>
+        </div>
+        <div class="ranking-table-wrap">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>País</th>
+                <th>Elo Inicial</th>
+                <th>Elo Simulado</th>
+                <th>Δ Elo</th>
+                <th>Movimiento</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-sim-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIMULADOR PAGE -->
+    <section class="page" id="page-simulador">
+      <div class="page-header">
+        <h2 class="page-title">🎮 Simulador</h2>
+        <p class="page-sub">Ingresa resultados y simula el torneo completo</p>
+      </div>
+      <div class="sim-controls">
+        <button class="btn-sim" id="btn-sim-random">🎲 Simular Aleatoriamente</button>
+        <button class="btn-sim btn-danger" id="btn-reset-sim">🔁 Reiniciar Todo</button>
+      </div>
+      <div class="sim-fase-title">FASE DE GRUPOS</div>
+      <div class="sim-matches" id="sim-matches"></div>
+      <div id="sim-results-section" style="display:none;">
+        <!-- Clasificados 1ro y 2do -->
+        <div class="sim-fase-title">✅ CLASIFICADOS (1° Y 2°)</div>
+        <div class="clasificados-grid" id="clasificados-grid"></div>
+
+        <!-- Mejores Terceros -->
+        <div class="sim-fase-title" style="margin-top:36px">🥉 TABLA DE MEJORES TERCEROS</div>
+        <p style="text-align:center;color:var(--text-dim);font-size:13px;margin-bottom:16px">
+          Los 8 mejores terceros de los 12 grupos avanzan · Criterio: PTS → DG → GF → Victorias → Ranking FIFA
+        </p>
+        <div class="ranking-table-wrap" style="max-width:900px;margin:0 auto">
+          <table class="ranking-table" id="terceros-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Equipo</th><th>Grupo</th>
+                <th title="Partidos Jugados">PJ</th>
+                <th title="Ganados">G</th>
+                <th title="Empatados">E</th>
+                <th title="Perdidos">P</th>
+                <th title="Goles Favor">GF</th>
+                <th title="Goles Contra">GC</th>
+                <th title="Diferencia">DG</th>
+                <th title="Puntos">PTS</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="terceros-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADIOS PAGE -->
+    <section class="page" id="page-estadios">
+      <div class="page-header">
+        <h2 class="page-title">🏟️ Estadios y Sedes</h2>
+        <p class="page-sub">16 estadios en 3 países anfitriones</p>
+      </div>
+      <div class="estadios-grid" id="estadios-grid"></div>
+    </section>
+  </main>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('SW Registered'))
+        .catch(err => console.log('SW Failed', err));
+    }
+  </script>
+  <script src="js/data.js?v=2.4"></script>
+  <script src="js/db.js?v=2.4"></script>
+  <script src="js/app.js?v=2.6"></script>
+</body>
+</html>
