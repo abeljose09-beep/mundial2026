@@ -3,7 +3,8 @@
 // =====================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBzfw3FS39YWksydkzuum9vXRy_VpnnnKQ",
@@ -18,6 +19,7 @@ const firebaseConfig = {
 // Initialize
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
+const analytics = getAnalytics(app);
 
 const DB = (() => {
   const COLLECTIONS = {
@@ -29,35 +31,45 @@ const DB = (() => {
 
   // ── INIT FIRESTORE ──
   async function init() {
-    // Check if initial data exists, if not seed it once
-    const matchesCol = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
-    if (matchesCol.empty) {
-      console.log('🌱 Seeding Firestore with initial matches...');
-      const batch = writeBatch(firestore);
-      WC2026.generateFixture().forEach(m => {
-        const ref = doc(firestore, COLLECTIONS.MATCHES, m.id);
-        batch.set(ref, m);
-      });
-      await batch.commit();
-    }
-
-    const bracketCol = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
-    if (bracketCol.empty) {
-      console.log('🌱 Seeding Firestore with initial bracket...');
-      const batch = writeBatch(firestore);
-      Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
-        data.matches.forEach(m => {
-          const ref = doc(firestore, COLLECTIONS.BRACKET, m.id);
-          batch.set(ref, { ...m, round, scoreHome: null, scoreAway: null });
+    try {
+      console.log('📡 Conectando a Firebase...');
+      
+      // Check for existing matches
+      const matchesCol = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
+      if (matchesCol.empty) {
+        console.log('🌱 Cloud Seeding: Matches...');
+        const batch = writeBatch(firestore);
+        WC2026.generateFixture().forEach(m => {
+          batch.set(doc(firestore, COLLECTIONS.MATCHES, m.id), m);
         });
-      });
-      await batch.commit();
-    }
-    
-    // Seed ranking if empty
-    const rankingCol = await getDocs(collection(firestore, COLLECTIONS.RANKING));
-    if (rankingCol.empty) {
-      await seedRanking(WC2026.fifaRanking);
+        await batch.commit();
+      }
+
+      // Check for existing bracket
+      const bracketCol = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
+      if (bracketCol.empty) {
+        console.log('🌱 Cloud Seeding: Bracket...');
+        const batch = writeBatch(firestore);
+        Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
+          data.matches.forEach(m => {
+            batch.set(doc(firestore, COLLECTIONS.BRACKET, m.id), { 
+              ...m, round, scoreHome: null, scoreAway: null, penHome: null, penAway: null 
+            });
+          });
+        });
+        await batch.commit();
+      }
+      
+      // Check ranking
+      const rankingCol = await getDocs(collection(firestore, COLLECTIONS.RANKING));
+      if (rankingCol.empty) {
+        await saveRanking(WC2026.fifaRanking);
+      }
+      
+      console.log('✅ Firebase conectado y sincronizado.');
+    } catch (error) {
+      console.error('❌ Firebase Error detallado:', error);
+      throw error; // Re-throw to be caught by app.js
     }
   }
 
@@ -75,8 +87,7 @@ const DB = (() => {
   async function resetMatches() {
     const batch = writeBatch(firestore);
     WC2026.generateFixture().forEach(m => {
-      const ref = doc(firestore, COLLECTIONS.MATCHES, m.id);
-      batch.set(ref, m);
+      batch.set(doc(firestore, COLLECTIONS.MATCHES, m.id), m);
     });
     return batch.commit();
   }
@@ -96,26 +107,21 @@ const DB = (() => {
     const batch = writeBatch(firestore);
     Object.entries(WC2026.bracketRounds).forEach(([round, data]) => {
       data.matches.forEach(m => {
-        const ref = doc(firestore, COLLECTIONS.BRACKET, m.id);
-        batch.set(ref, { ...m, round, scoreHome: null, scoreAway: null, penHome: null, penAway: null });
+        batch.set(doc(firestore, COLLECTIONS.BRACKET, m.id), { 
+          ...m, round, scoreHome: null, scoreAway: null, penHome: null, penAway: null 
+        });
       });
     });
     return batch.commit();
   }
 
   // ── RANKING ──
-  async function seedRanking(data) {
+  async function saveRanking(data) {
     const batch = writeBatch(firestore);
     data.forEach(r => {
-      const ref = doc(firestore, COLLECTIONS.RANKING, r.rank.toString());
-      batch.set(ref, r);
+      batch.set(doc(firestore, COLLECTIONS.RANKING, r.rank.toString()), r);
     });
     await batch.commit();
-  }
-
-  async function saveRanking(data) {
-    // Only update if needed or rewrite all
-    await seedRanking(data);
     await setSetting('ranking_updated', new Date().toISOString());
   }
 
@@ -145,5 +151,5 @@ const DB = (() => {
   };
 })();
 
-// Export globally for app.js
+// Assign to window for app.js access
 window.DB = DB;
