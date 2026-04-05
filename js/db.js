@@ -5,6 +5,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBzfw3FS39YWksydkzuum9vXRy_VpnnnKQ",
@@ -20,6 +21,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 const DB = (() => {
   const COLLECTIONS = {
@@ -29,12 +32,29 @@ const DB = (() => {
     RANKING: 'ranking',
   };
 
+  let currentUser = null;
+
+  async function login() {
+    try {
+      const res = await signInWithPopup(auth, provider);
+      return res.user;
+    } catch (e) { console.error('Login Fail', e); return null; }
+  }
+
+  async function logout() { await signOut(auth); }
+
+  function onAuth(cb) {
+    onAuthStateChanged(auth, user => {
+      currentUser = user;
+      cb(user);
+    });
+  }
+
   // ── INIT FIRESTORE ──
   async function init() {
     try {
       console.log('📡 Conectando a Firebase...');
       
-      // Check for existing matches
       const matchesCol = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
       if (matchesCol.empty) {
         console.log('🌱 Cloud Seeding: Matches...');
@@ -45,7 +65,6 @@ const DB = (() => {
         await batch.commit();
       }
 
-      // Check for existing bracket
       const bracketCol = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
       if (bracketCol.empty) {
         console.log('🌱 Cloud Seeding: Bracket...');
@@ -60,7 +79,6 @@ const DB = (() => {
         await batch.commit();
       }
       
-      // Check ranking
       const rankingCol = await getDocs(collection(firestore, COLLECTIONS.RANKING));
       if (rankingCol.empty) {
         await saveRanking(WC2026.fifaRanking);
@@ -69,11 +87,10 @@ const DB = (() => {
       console.log('✅ Firebase conectado y sincronizado.');
     } catch (error) {
       console.error('❌ Firebase Error detallado:', error);
-      throw error; // Re-throw to be caught by app.js
+      throw error;
     }
   }
 
-  // ── MATCHES ──
   async function getAllMatches() {
     const snap = await getDocs(collection(firestore, COLLECTIONS.MATCHES));
     return snap.docs.map(d => d.data());
@@ -92,7 +109,6 @@ const DB = (() => {
     return batch.commit();
   }
 
-  // ── BRACKET ──
   async function getAllBracket() {
     const snap = await getDocs(collection(firestore, COLLECTIONS.BRACKET));
     return snap.docs.map(d => d.data());
@@ -115,7 +131,6 @@ const DB = (() => {
     return batch.commit();
   }
 
-  // ── RANKING ──
   async function saveRanking(data) {
     const batch = writeBatch(firestore);
     data.forEach(r => {
@@ -132,7 +147,6 @@ const DB = (() => {
     return { data, updatedAt: updated };
   }
 
-  // ── SETTINGS ──
   async function getSetting(key) {
     const snap = await getDoc(doc(firestore, COLLECTIONS.SETTINGS, key));
     return snap.exists() ? snap.data().value : null;
@@ -148,8 +162,8 @@ const DB = (() => {
     getAllBracket, updateBracketMatch, resetBracket,
     saveRanking, getCachedRanking,
     getSetting, setSetting,
+    login, logout, onAuth
   };
 })();
 
-// Assign to window for app.js access
 window.DB = DB;
