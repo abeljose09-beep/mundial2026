@@ -267,13 +267,14 @@
   <!-- SCRIPTS -->
   <script type="module">
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('SW Registered'))
-        .catch(err => console.log('SW Failed', err));
+      // Desregistrar Service Worker viejo para limpiar caché
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
     }
   </script>
-  <script src="js/data.js?v=4.0"></script>
-  <script src="js/db.js?v=4.0"></script>
-  <script src="js/app.js?v=4.0"></script>
+  <script src="js/data.js?v=5.0"></script>
+  <script src="js/db.js?v=5.0"></script>
+  <script src="js/app.js?v=5.0"></script>
 </body>
 </html>
