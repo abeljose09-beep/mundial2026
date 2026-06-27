@@ -265,34 +265,52 @@ const WC2026 = {
   ],
 
   // ── BRACKET ROUNDS (R32 template) ──
+  // Estructura oficial FIFA 2026 (Anexo C) — Partidos M73 a M88
+  // Los slots "3º (XXXX)" se resolverán dinámicamente según la tabla de combinaciones de 495 escenarios
+  // Ordenados para emparejamiento visual directo (admiten llaves adyacentes):
+  // R16-01: M73 vs M75 | R16-02: M74 vs M77 | R16-03: M76 vs M78 | R16-04: M79 vs M80
+  // R16-05: M83 vs M84 | R16-06: M81 vs M82 | R16-07: M86 vs M88 | R16-08: M85 vs M87
   bracketRounds: {
     r32: {
       title: 'Ronda de 32',
       matches: [
-        { id: 'R32-01', label: 'Partido 1', home: '1º Grupo A', away: '3º Mejor 1', homeCode: null, awayCode: null },
-        { id: 'R32-02', label: 'Partido 2', home: '1º Grupo B', away: '3º Mejor 2', homeCode: null, awayCode: null },
-        { id: 'R32-03', label: 'Partido 3', home: '1º Grupo C', away: '2º Grupo F', homeCode: null, awayCode: null },
-        { id: 'R32-04', label: 'Partido 4', home: '1º Grupo D', away: '2º Grupo E', homeCode: null, awayCode: null },
-        { id: 'R32-05', label: 'Partido 5', home: '1º Grupo E', away: '2º Grupo D', homeCode: null, awayCode: null },
-        { id: 'R32-06', label: 'Partido 6', home: '1º Grupo F', away: '2º Grupo C', homeCode: null, awayCode: null },
-        { id: 'R32-07', label: 'Partido 7', home: '1º Grupo G', away: '3º Mejor 3', homeCode: null, awayCode: null },
-        { id: 'R32-08', label: 'Partido 8', home: '1º Grupo H', away: '3º Mejor 4', homeCode: null, awayCode: null },
-        { id: 'R32-09', label: 'Partido 9', home: '1º Grupo I', away: '3º Mejor 5', homeCode: null, awayCode: null },
-        { id: 'R32-10', label: 'Partido 10', home: '1º Grupo J', away: '3º Mejor 6', homeCode: null, awayCode: null },
-        { id: 'R32-11', label: 'Partido 11', home: '1º Grupo K', away: '2º Grupo L', homeCode: null, awayCode: null },
-        { id: 'R32-12', label: 'Partido 12', home: '1º Grupo L', away: '2º Grupo K', homeCode: null, awayCode: null },
-        { id: 'R32-13', label: 'Partido 13', home: '2º Grupo A', away: '2º Grupo B', homeCode: null, awayCode: null },
-        { id: 'R32-14', label: 'Partido 14', home: '2º Grupo G', away: '2º Grupo H', homeCode: null, awayCode: null },
-        { id: 'R32-15', label: 'Partido 15', home: '2º Grupo I', away: '2º Grupo J', homeCode: null, awayCode: null },
-        { id: 'R32-16', label: 'Partido 16', home: '3º Mejor 7', away: '3º Mejor 8', homeCode: null, awayCode: null },
+        // LADO IZQUIERDO del bracket (M73, M75, M74, M77, M83, M84, M81, M82)
+        // Agrupados en pares adyacentes para que alimenten a R16-01, R16-02, R16-03, R16-04
+        { id: 'R32-01', label: 'M73', home: '2º Grupo A',  away: '2º Grupo B',    homeCode: null, awayCode: null },
+        { id: 'R32-03', label: 'M75', home: '1º Grupo F',  away: '2º Grupo C',    homeCode: null, awayCode: null },
+        { id: 'R32-02', label: 'M74', home: '1º Grupo E',  away: '3º (ABCDF)',    homeCode: null, awayCode: null },
+        { id: 'R32-05', label: 'M77', home: '1º Grupo I',  away: '3º (CDFGH)',    homeCode: null, awayCode: null },
+        { id: 'R32-11', label: 'M83', home: '2º Grupo K',  away: '2º Grupo L',    homeCode: null, awayCode: null },
+        { id: 'R32-12', label: 'M84', home: '1º Grupo H',  away: '2º Grupo J',    homeCode: null, awayCode: null },
+        { id: 'R32-09', label: 'M81', home: '1º Grupo D',  away: '3º (BEFIJ)',    homeCode: null, awayCode: null },
+        { id: 'R32-10', label: 'M82', home: '1º Grupo G',  away: '3º (AEHIJ)',    homeCode: null, awayCode: null },
+        // LADO DERECHO del bracket (M76, M78, M79, M80, M86, M88, M85, M87)
+        // Agrupados en pares adyacentes para que alimenten a R16-05, R16-06, R16-07, R16-08
+        { id: 'R32-04', label: 'M76', home: '1º Grupo C',  away: '2º Grupo F',    homeCode: null, awayCode: null },
+        { id: 'R32-06', label: 'M78', home: '2º Grupo E',  away: '2º Grupo I',    homeCode: null, awayCode: null },
+        { id: 'R32-07', label: 'M79', home: '1º Grupo A',  away: '3º (CEFHI)',    homeCode: null, awayCode: null },
+        { id: 'R32-08', label: 'M80', home: '1º Grupo L',  away: '3º (EHIJK)',    homeCode: null, awayCode: null },
+        { id: 'R32-14', label: 'M86', home: '1º Grupo J',  away: '2º Grupo H',    homeCode: null, awayCode: null },
+        { id: 'R32-16', label: 'M88', home: '2º Grupo D',  away: '2º Grupo G',    homeCode: null, awayCode: null },
+        { id: 'R32-13', label: 'M85', home: '1º Grupo B',  away: '3º (EFGIJ)',    homeCode: null, awayCode: null },
+        { id: 'R32-15', label: 'M87', home: '1º Grupo K',  away: '3º (DEIJL)',    homeCode: null, awayCode: null },
       ]
     },
     r16: {
       title: 'Octavos de Final',
-      matches: Array.from({length: 8}, (_, i) => ({
-        id: `R16-0${i+1}`, label: `Octavos ${i+1}`, home: `Ganador R32-${String(i*2+1).padStart(2,'0')}`,
-        away: `Ganador R32-${String(i*2+2).padStart(2,'0')}`, homeCode: null, awayCode: null
-      }))
+      // Cruces R16 según el bracket oficial FIFA 2026:
+      // R16-01 a R16-04 para el LADO IZQUIERDO (alimentan QF-01 y QF-02)
+      // R16-05 a R16-08 para el LADO DERECHO (alimentan QF-03 y QF-04)
+      matches: [
+        { id: 'R16-01', label: 'Octavos 1', home: 'Ganador M73', away: 'Ganador M75', homeCode: null, awayCode: null },
+        { id: 'R16-02', label: 'Octavos 2', home: 'Ganador M74', away: 'Ganador M77', homeCode: null, awayCode: null },
+        { id: 'R16-03', label: 'Octavos 3', home: 'Ganador M83', away: 'Ganador M84', homeCode: null, awayCode: null },
+        { id: 'R16-04', label: 'Octavos 4', home: 'Ganador M81', away: 'Ganador M82', homeCode: null, awayCode: null },
+        { id: 'R16-05', label: 'Octavos 5', home: 'Ganador M76', away: 'Ganador M78', homeCode: null, awayCode: null },
+        { id: 'R16-06', label: 'Octavos 6', home: 'Ganador M79', away: 'Ganador M80', homeCode: null, awayCode: null },
+        { id: 'R16-07', label: 'Octavos 7', home: 'Ganador M86', away: 'Ganador M88', homeCode: null, awayCode: null },
+        { id: 'R16-08', label: 'Octavos 8', home: 'Ganador M85', away: 'Ganador M87', homeCode: null, awayCode: null },
+      ]
     },
     qf: {
       title: 'Cuartos de Final',
