@@ -84,7 +84,11 @@
   if (fJ) fJ.addEventListener('change', e => { fixtureJornada = e.target.value; renderFixture(); });
 
   const BRACKET_TREE = {
+<<<<<<< HEAD
     // R32 → R16 (cruces oficiales FIFA 2026 ordenados por lados)
+=======
+    // R32 → R16
+>>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
     // LADO IZQUIERDO:
     'R32-01': [{ next: 'R16-01', side: 'home', role: 'winner' }],  // M73 → R16-01
     'R32-03': [{ next: 'R16-01', side: 'away', role: 'winner' }],  // M75 → R16-01
@@ -104,7 +108,11 @@
     'R32-13': [{ next: 'R16-08', side: 'home', role: 'winner' }],  // M85 → R16-08
     'R32-15': [{ next: 'R16-08', side: 'away', role: 'winner' }],  // M87 → R16-08
 
+<<<<<<< HEAD
     // R16 → QF (Se emparejan R16-01/02 y R16-03/04 a la izquierda, y R16-05/06 y R16-07/08 a la derecha)
+=======
+    // R16 → QF
+>>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
     'R16-01': [{ next: 'QF-01', side: 'home', role: 'winner' }],
     'R16-02': [{ next: 'QF-01', side: 'away', role: 'winner' }],
     'R16-03': [{ next: 'QF-02', side: 'home', role: 'winner' }],
@@ -278,6 +286,7 @@
       return null;
     };
 
+<<<<<<< HEAD
     // Mapping table oficial FIFA 2026 (M73–M88)
     // R32-01=M73, R32-02=M74, R32-03=M75, R32-04=M76, R32-05=M77, R32-06=M78
     // R32-07=M79, R32-08=M80, R32-09=M81, R32-10=M82, R32-11=M83, R32-12=M84
@@ -301,14 +310,68 @@
       { id:'R32-16', h:{type:'2nd',group:'D'},           a:{type:'2nd',group:'G'} },           // M88: 2D vs 2G
       { id:'R32-13', h:{type:'1st',group:'B'},           a:{type:'slot3',slotId:'R32-13'} },   // M85: 1B vs 3EFGIJ
       { id:'R32-15', h:{type:'1st',group:'K'},           a:{type:'slot3',slotId:'R32-15'} },   // M87: 1K vs 3DEIJL
+=======
+    // Mapping table: R32 match → home & away sources (oficial FIFA 2026 Anexo C)
+    const MAP = [
+      { id:'R32-01', h:{type:'2nd',group:'A'}, a:{type:'2nd',group:'B'} },  // M73
+      { id:'R32-03', h:{type:'1st',group:'F'}, a:{type:'2nd',group:'C'} },  // M75
+      { id:'R32-02', h:{type:'1st',group:'E'}, a:{type:'best3',slot:'R32-02'} }, // M74 vs 3ABCDF
+      { id:'R32-05', h:{type:'1st',group:'I'}, a:{type:'best3',slot:'R32-05'} }, // M77 vs 3CDFGH
+      { id:'R32-11', h:{type:'2nd',group:'K'}, a:{type:'2nd',group:'L'} },  // M83
+      { id:'R32-12', h:{type:'1st',group:'H'}, a:{type:'2nd',group:'J'} },  // M84
+      { id:'R32-09', h:{type:'1st',group:'D'}, a:{type:'best3',slot:'R32-09'} }, // M81 vs 3BEFIJ
+      { id:'R32-10', h:{type:'1st',group:'G'}, a:{type:'best3',slot:'R32-10'} }, // M82 vs 3AEHIJ
+      { id:'R32-04', h:{type:'1st',group:'C'}, a:{type:'2nd',group:'F'} },  // M76
+      { id:'R32-06', h:{type:'2nd',group:'E'}, a:{type:'2nd',group:'I'} },  // M78
+      { id:'R32-07', h:{type:'1st',group:'A'}, a:{type:'best3',slot:'R32-07'} }, // M79 vs 3CEFHI
+      { id:'R32-08', h:{type:'1st',group:'L'}, a:{type:'best3',slot:'R32-08'} }, // M80 vs 3EHIJK
+      { id:'R32-14', h:{type:'1st',group:'J'}, a:{type:'2nd',group:'H'} },  // M86
+      { id:'R32-16', h:{type:'2nd',group:'D'}, a:{type:'2nd',group:'G'} },  // M88
+      { id:'R32-13', h:{type:'1st',group:'B'}, a:{type:'best3',slot:'R32-13'} }, // M85 vs 3EFGIJ
+      { id:'R32-15', h:{type:'1st',group:'K'}, a:{type:'best3',slot:'R32-15'} }, // M87 vs 3DEIJL
+>>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
     ];
+
+    // Slots para 3ros clasificados (Anexo C FIFA 2026)
+    const THIRD_SLOTS = [
+      { id: 'R32-02', grupos: ['A','B','C','D','F'] },   // M74 vs 3ABCDF
+      { id: 'R32-05', grupos: ['C','D','F','G','H'] },   // M77 vs 3CDFGH
+      { id: 'R32-07', grupos: ['C','E','F','H','I'] },   // M79 vs 3CEFHI
+      { id: 'R32-08', grupos: ['E','H','I','J','K'] },   // M80 vs 3EHIJK
+      { id: 'R32-09', grupos: ['B','E','F','I','J'] },   // M81 vs 3BEFIJ
+      { id: 'R32-10', grupos: ['A','E','H','I','J'] },   // M82 vs 3AEHIJ
+      { id: 'R32-13', grupos: ['E','F','G','I','J'] },   // M85 vs 3EFGIJ
+      { id: 'R32-15', grupos: ['D','E','I','J','L'] },   // M87 vs 3DEIJL
+    ];
+    const assignedThirds = {};
+    const usedGroups = new Set();
+    for (const slot of THIRD_SLOTS) {
+      const match = thirds.find(t => !usedGroups.has(t.grupo) && slot.grupos.includes(t.grupo));
+      if (match) { assignedThirds[slot.id] = match; usedGroups.add(match.grupo); }
+    }
+
+    // Resolve fuente de equipo para cada partido del MAP
+    const resolve2 = (src, id) => {
+      if (src.type === '1st' || src.type === '2nd') {
+        const st = gMap[src.group];
+        if (!st) return null;
+        const t = st[src.type === '1st' ? 0 : 1];
+        if (!t || t.PJ === 0) return null;
+        return { name: t.name, code: WC2026.flagCode[t.name] || null };
+      }
+      if (src.type === 'best3') {
+        const t = assignedThirds[id];
+        return t ? { name: t.name, code: WC2026.flagCode[t.name] || null } : null;
+      }
+      return null;
+    };
 
     let anyChanged = false;
     for (const entry of MAP) {
       const bm = allBracket.find(m => m.id === entry.id);
       if (!bm) continue;
-      const hTeam = resolve(entry.h);
-      const aTeam = resolve(entry.a);
+      const hTeam = resolve2(entry.h, entry.id);
+      const aTeam = resolve2(entry.a, entry.id);
       let changed = false;
       if (hTeam && bm.homeCode !== hTeam.code) {
         bm.homeResolved = hTeam.name; bm.homeCode = hTeam.code; changed = true;

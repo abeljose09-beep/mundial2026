@@ -142,17 +142,28 @@ const DB = (() => {
     await open();
     const matches = await getAllMatches();
     if (matches.length === 0) await resetMatches();
+<<<<<<< HEAD
     
     // Forzar reset si la versión del bracket no es 'v3' (para reordenamiento visual y corregir cruces)
     const bracketVer = await getSetting('bracket_version');
     if (bracketVer !== 'v3') {
       await resetBracket();
       await setSetting('bracket_version', 'v3');
+=======
+    // Migración: resetear bracket si la versión cambió
+    const bracketVer = await getSetting('bracket_version');
+    if (bracketVer !== 'v4-ide') {
+      await resetBracket();
+      await setSetting('bracket_version', 'v4-ide');
+>>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
     } else {
       const bracket = await getAllBracket();
       if (bracket.length === 0) await resetBracket();
     }
+<<<<<<< HEAD
     
+=======
+>>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
     const rank = await getAll(STORES.RANKING);
     if (rank.length === 0) await saveRanking(WC2026.fifaRanking);
   }
