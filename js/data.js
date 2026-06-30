@@ -266,25 +266,14 @@ const WC2026 = {
 
   // ── BRACKET ROUNDS (R32 template) ──
   // Estructura oficial FIFA 2026 (Anexo C) — Partidos M73 a M88
-<<<<<<< HEAD
-  // Los slots "3º (XXXX)" se resolverán dinámicamente según la tabla de combinaciones de 495 escenarios
-  // Ordenados para emparejamiento visual directo (admiten llaves adyacentes):
-  // R16-01: M73 vs M75 | R16-02: M74 vs M77 | R16-03: M76 vs M78 | R16-04: M79 vs M80
-  // R16-05: M83 vs M84 | R16-06: M81 vs M82 | R16-07: M86 vs M88 | R16-08: M85 vs M87
-=======
   // Ordenados para emparejamiento visual directo (pares adyacentes):
   // R16-01: M73 vs M75 | R16-02: M74 vs M77 | R16-03: M83 vs M84 | R16-04: M81 vs M82
   // R16-05: M76 vs M78 | R16-06: M79 vs M80 | R16-07: M86 vs M88 | R16-08: M85 vs M87
->>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
   bracketRounds: {
     r32: {
       title: 'Ronda de 32',
       matches: [
         // LADO IZQUIERDO del bracket (M73, M75, M74, M77, M83, M84, M81, M82)
-<<<<<<< HEAD
-        // Agrupados en pares adyacentes para que alimenten a R16-01, R16-02, R16-03, R16-04
-=======
->>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
         { id: 'R32-01', label: 'M73', home: '2º Grupo A',  away: '2º Grupo B',    homeCode: null, awayCode: null },
         { id: 'R32-03', label: 'M75', home: '1º Grupo F',  away: '2º Grupo C',    homeCode: null, awayCode: null },
         { id: 'R32-02', label: 'M74', home: '1º Grupo E',  away: '3º (ABCDF)',    homeCode: null, awayCode: null },
@@ -294,10 +283,6 @@ const WC2026 = {
         { id: 'R32-09', label: 'M81', home: '1º Grupo D',  away: '3º (BEFIJ)',    homeCode: null, awayCode: null },
         { id: 'R32-10', label: 'M82', home: '1º Grupo G',  away: '3º (AEHIJ)',    homeCode: null, awayCode: null },
         // LADO DERECHO del bracket (M76, M78, M79, M80, M86, M88, M85, M87)
-<<<<<<< HEAD
-        // Agrupados en pares adyacentes para que alimenten a R16-05, R16-06, R16-07, R16-08
-=======
->>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
         { id: 'R32-04', label: 'M76', home: '1º Grupo C',  away: '2º Grupo F',    homeCode: null, awayCode: null },
         { id: 'R32-06', label: 'M78', home: '2º Grupo E',  away: '2º Grupo I',    homeCode: null, awayCode: null },
         { id: 'R32-07', label: 'M79', home: '1º Grupo A',  away: '3º (CEFHI)',    homeCode: null, awayCode: null },
@@ -310,12 +295,6 @@ const WC2026 = {
     },
     r16: {
       title: 'Octavos de Final',
-<<<<<<< HEAD
-      // Cruces R16 según el bracket oficial FIFA 2026:
-      // R16-01 a R16-04 para el LADO IZQUIERDO (alimentan QF-01 y QF-02)
-      // R16-05 a R16-08 para el LADO DERECHO (alimentan QF-03 y QF-04)
-=======
->>>>>>> 21cf3cdebc290e267f2ba0e552a450f75baff1b2
       matches: [
         { id: 'R16-01', label: 'Octavos 1', home: 'Ganador M73', away: 'Ganador M75', homeCode: null, awayCode: null },
         { id: 'R16-02', label: 'Octavos 2', home: 'Ganador M74', away: 'Ganador M77', homeCode: null, awayCode: null },
