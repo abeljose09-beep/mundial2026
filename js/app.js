@@ -244,7 +244,7 @@
       { id: 'R32-07', grupos: ['C','E','F','H','I'] },   // M79 vs 3CEFHI
       { id: 'R32-08', grupos: ['E','H','I','J','K'] },   // M80 vs 3EHIJK
       { id: 'R32-09', grupos: ['B','E','F','I','J'] },   // M81 vs 3BEFIJ
-      { id: 'R32-10', grupos: ['A','E','H','I','J'] },   // M82 vs 3AEHIJ
+      { id: 'R32-10', grupos: ['I'] },   // M82 vs 3AEHIJ
       { id: 'R32-13', grupos: ['E','F','G','I','J'] },   // M85 vs 3EFGIJ
       { id: 'R32-15', grupos: ['D','E','I','J','L'] },   // M87 vs 3DEIJL
     ];
