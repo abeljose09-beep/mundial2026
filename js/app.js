@@ -221,7 +221,7 @@
     // Slots: R32-02=M74, R32-05=M77, R32-07=M79, R32-08=M80,
     //        R32-09=M81, R32-10=M82, R32-13=M85, R32-15=M87
     const slots = [
-      { id: 'R32-02', grupos: ['A','B','C','D','F'] },   // M74 vs 3ABCDF
+      { id: 'R32-02', grupos: ['D'] },   // M74 vs 3ABCDF
       { id: 'R32-05', grupos: ['C','D','F','G','H'] },   // M77 vs 3CDFGH
       { id: 'R32-07', grupos: ['C','E','F','H','I'] },   // M79 vs 3CEFHI
       { id: 'R32-08', grupos: ['E','H','I','J','K'] },   // M80 vs 3EHIJK
